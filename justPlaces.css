@@ -1,0 +1,14 @@
+div.gallery{
+    display: flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+.imagenes{
+    width:10%;
+    height:10%;
+    margin:0.5%;
+}
+#video1{
+    display: none;
+}
