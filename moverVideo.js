@@ -1,6 +1,6 @@
 const img = document.getElementsByClassName('imagenes');
 const video = document.createElement('video');
-video.src = "prueba.mp4";
+video.src = "./videos/prueba.mp4";
 video.preload = "auto";
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext('2d');
