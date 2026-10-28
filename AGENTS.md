@@ -107,6 +107,7 @@ Para que el recorrido sea más o menos sensible, cambiar `PX_PER_FRAME`: más ch
 - El video va muteado; el audio arranca con el primer gesto. Si iOS lo bloquea, se activa con el botón de sonido.
 - El loop del audio puede tener una micro pausa. Si molesta, habría que pasar a Web Audio.
 - Sin canvas, iOS podría mostrar algún overlay nativo sobre el video.
+- Algunos navegadores móviles (Chrome en Android con ahorro de datos, Safari en iOS) ignoran `preload="auto"`. Por eso `moverVideo.js` fuerza la descarga con un `play()` muteado y pausa al recibir la metadata. Si aun así no carga, queda un aviso en la consola.
 - Los originales `videos/prueba.mp4` y `videos/miau.mp4` no se usan en la web. No hace falta subirlos.
 
 ## Publicar

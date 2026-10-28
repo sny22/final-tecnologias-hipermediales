@@ -500,6 +500,21 @@ No usar `python -m http.server`: no soporta `Range` y el video no se puede seeke
 
 Criterio de aceptación: la URL pública funciona; otro agente puede agregar una pieza sin leer todo el código.
 
+### Incidente en producción: página en blanco en Android
+
+Síntoma: `https://justplaces.netlify.app/` mostraba la galería bien, pero al tocar una imagen la página de video quedaba blanca. En Chromium de escritorio la misma URL funcionaba.
+
+Causa: Chrome en Android (y Safari en iOS) puede ignorar `preload="auto"` por ahorro de datos. Sin descarga no llega `loadedmetadata`, sin metadata no hay `totalFrames`, el motor nunca busca un frame y el `<video>` queda transparente. Como el proyecto no muestra texto por diseño, el resultado es una página en blanco sin ninguna pista.
+
+Arreglo en `moverVideo.js`:
+
+- `empujarCarga()`: si a los 900 ms no hay metadata, llama `video.play()` (muteado, permitido por las políticas de autoplay) para forzar la descarga y, en cuanto llega `loadedmetadata`, pausa y busca el frame 0.
+- `vigilarCarga()`: reintenta hasta 4 veces cada 1,8 s y, si no carga, deja un `console.warn` con `readyState`, `networkState`, `error` y `src`.
+- El primer `pointerdown`/`keydown` reinicia los intentos: un gesto del usuario desbloquea la descarga incluso donde el autoplay muteado está bloqueado.
+- El botón de sonido también empuja la carga.
+
+Verificado en Chromium con el video forzado a `readyState 0`: el empujón descarga, pausa en el frame 0 y deja `readyState 4`. En carga normal `empujes` queda en 0, o sea que no hay reproducción innecesaria.
+
 ## CRITERIOS DE ACEPTACIÓN GLOBALES
 
 - Cada imagen de la galería abre su video correspondiente.

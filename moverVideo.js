@@ -4,6 +4,8 @@
 const PX_PER_FRAME = 10;
 const PASO_RUEDA = 100;
 const MAX_PASOS_RUEDA = 3;
+const ESPERA_CARGA = 900;
+const MAX_EMPUJES = 4;
 
 const video = document.getElementById("video");
 const audio = document.getElementById("audio");
@@ -20,6 +22,7 @@ let buscando = false;
 let listo = false;
 let acumuladoRueda = 0;
 let sonidoActivo = false;
+let empujes = 0;
 
 video.muted = true;
 aplicarTextos();
@@ -39,11 +42,48 @@ if (!pieza) {
   video.addEventListener("loadedmetadata", alCargarMetadata);
   video.load();
   audio.load();
+  setTimeout(vigilarCarga, ESPERA_CARGA);
+}
+
+// Chrome en Android con ahorro de datos, y Safari en iOS, ignoran preload="auto":
+// no bajan ni un byte del video hasta que se reproduce, así que la página queda blanca.
+// Un play() muteado sí está permitido por las políticas de autoplay y fuerza la descarga;
+// en cuanto llega la metadata lo pausamos y seguimos en modo fotograma a fotograma.
+function empujarCarga() {
+  if (!pieza || totalFrames || empujes >= MAX_EMPUJES) return;
+
+  empujes++;
+
+  video.play().then(function () {
+    if (totalFrames) video.pause();
+  }).catch(function () {
+    // El navegador lo bloquea: el primer gesto del usuario vuelve a intentarlo.
+  });
+}
+
+function vigilarCarga() {
+  if (!pieza || totalFrames) return;
+
+  empujarCarga();
+
+  if (empujes < MAX_EMPUJES) {
+    setTimeout(vigilarCarga, ESPERA_CARGA * 2);
+  } else {
+    console.warn("El video no cargó", {
+      readyState: video.readyState,
+      networkState: video.networkState,
+      error: video.error && video.error.code,
+      src: video.currentSrc
+    });
+  }
 }
 
 function alCargarMetadata() {
   totalFrames = Math.round(video.duration * fps);
   if (!totalFrames) return;
+
+  // Si el video venía reproduciéndose por el empujón de carga, se frena acá.
+  if (!video.paused) video.pause();
 
   // El recorrido de un ciclo nunca es más corto que la pantalla,
   // para que siempre haya margen de scroll.
@@ -162,6 +202,10 @@ function intentarSonido() {
 
 function alPrimerGesto(event) {
   if (event.target.closest && event.target.closest(".sound")) return;
+
+  // Un gesto siempre desbloquea la descarga, aunque los empujes automáticos hayan fallado.
+  empujes = 0;
+  empujarCarga();
   intentarSonido();
 }
 
@@ -169,6 +213,9 @@ window.addEventListener("pointerdown", alPrimerGesto);
 window.addEventListener("keydown", alPrimerGesto);
 
 botonSonido.addEventListener("click", function () {
+  empujes = 0;
+  empujarCarga();
+
   if (sonidoActivo) {
     audio.pause();
     sonidoActivo = false;
