@@ -1,13 +1,32 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en" class="escena">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel = "stylesheet" href="justPlaces.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <link rel="stylesheet" href="justPlaces.css">
     <title>A love that didnt work but remains here</title>
+    <script src="textos.js" defer></script>
+    <script src="piezas.js" defer></script>
+    <script src="moverVideo.js" defer></script>
 </head>
 <body>
-    <canvas id="myCanvas" width="400" height="225"></canvas>
-    <script src="moverVideo.js"></script>
+    <main class="stage">
+        <video id="video" playsinline muted preload="auto"></video>
+
+        <div class="scroll-track" id="scrollTrack">
+            <div class="scroll-space" id="scrollSpace"></div>
+        </div>
+
+        <button class="sound" id="sound" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path class="parlante" d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"></path>
+                <path class="ondas" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12"></path>
+                <path class="tachado" d="M4.5 19.5 19.5 4.5"></path>
+            </svg>
+        </button>
+    </main>
+
+    <audio id="audio" loop preload="auto"></audio>
 </body>
 </html>

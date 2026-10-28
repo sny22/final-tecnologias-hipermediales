@@ -1,0 +1,7 @@
+# Originales de video: no los usa la web, no hace falta versionarlos ni subirlos.
+videos/*.mp4
+!videos/*-web.mp4
+
+# Ruido del sistema
+Thumbs.db
+.DS_Store
