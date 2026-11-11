@@ -1,6 +1,9 @@
 # Originales de video: no los usa la web, no hace falta versionarlos ni subirlos.
+# Se ignoran con y sin audio, en mp4 y en MOV, salvo los -web.mp4.
 videos/*.mp4
 !videos/*-web.mp4
+videos/*.mov
+videos/*.MOV
 
 # Ruido del sistema
 Thumbs.db

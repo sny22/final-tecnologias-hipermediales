@@ -542,3 +542,28 @@ Verificado en Chromium con el video forzado a `readyState 0`: el empujón descar
 - Abrir el proyecto con `file://` no es confiable; usar servidor local.
 - OneDrive puede bloquear archivos durante la edición; si pasa, probar desde una copia local.
 - Sin re-encode no se garantiza fluidez; por eso el re-encode es parte del plan.
+
+## CONTENIDO DEFINITIVO — CINCO PIEZAS
+
+Se reemplazaron las dos piezas de prueba por cinco obras nuevas. Fuentes: ideos/*.MOV de cámara (1920x1080, 29,97 fps, audio PCM) e imágenes de 4000-5184 px.
+
+Assets generados:
+
+| Pieza | Video | Resolución | Frames | Peso | Audio |
+|---|---|---|---|---|---|
+| aeroparque | aeroparque-web.mp4 | 720x406 | 2902 | 12,6 MB | 1,5 MB |
+| ateneo | ateneo-web.mp4 | 1080x608 | 886 | 5,1 MB | 0,46 MB |
+| avion | avion-web.mp4 | 1080x608 | 597 | 1,7 MB | 0,31 MB |
+| cementerio | cementerio-web.mp4 | 720x406 | 2381 | 11,8 MB | 1,2 MB |
+| plazafrancia | plazafrancia-web.mp4 | 1080x608 | 866 | 11,6 MB | 0,45 MB |
+
+- Todas a 30 fps CFR, GOP 5, faststart, yuv420p, perfil main, sin audio en el MP4.
+- El audio va aparte en .m4a (AAC 128k), como en las piezas anteriores.
+- Las dos piezas largas se codificaron a 720 px: a 1080 pesaban 24 MB cada una.
+- Las imágenes de galería se optimizaron a 1600 px de ancho y ~250 KB (antes 4-7 MB cada una: la portada pedía 25 MB y ahora pide 1,3 MB).
+- Los id van en minúscula, igual que los nombres de archivo.
+- Los .MOV originales (1,4 GB) quedan fuera del repo por .gitignore.
+
+Verificado: las cinco piezas cargan, el video queda en el frame 0, el audio responde y el seek al frame medio tarda entre 3 y 34 ms. Consola limpia.
+
+Incidencia: al optimizar las imágenes, el primer intento escribió la salida sobre el mismo archivo que la entrada (Windows no distingue mayúsculas en el nombre) y sobrescribió los originales de cámara. Los archivos de imagenes/ son ahora las versiones de 1600 px; los originales de 5184 px hay que recuperarlos desde OneDrive o desde la cámara si se necesitan.

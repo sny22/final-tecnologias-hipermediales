@@ -36,7 +36,14 @@ videos/              videos y audios para la web
 
 ## Agregar una pieza
 
-1. Copiar la imagen a `imagenes/`.
+1. Optimizar la imagen a `imagenes/<id>.jpg`: ancho máximo 1600 px, calidad alta. Los originales de cámara (5000 px, 5 MB) no van a la web.
+
+```powershell
+ffmpeg -i original.JPG -vf "scale='min(1600,iw)':-2" -q:v 3 imagenes/nueva.jpg
+```
+
+**Nunca** escribir la salida con el mismo nombre base que la entrada: en Windows y macOS `foto.JPG` y `foto.jpg` son el mismo archivo y ffmpeg lo sobrescribe.
+
 2. Re-encodear el video a `videos/<id>-web.mp4` y extraer el audio a `videos/<id>-audio.m4a`.
 3. Sumar un objeto a `PIEZAS` en `piezas.js`:
 
@@ -54,18 +61,22 @@ videos/              videos y audios para la web
 
 4. Listo. `galeria.js` arma el enlace `mostrarVideo.html?p=nueva`.
 
-`ancho` y `alto` son las dimensiones reales de la imagen. Se usan para reservar el espacio y evitar saltos de layout.
+`ancho` y `alto` son las dimensiones reales del archivo de `imagenes/`, el optimizado, no las del original. Se usan para reservar el espacio y evitar saltos de layout.
+
+Los `id` van en minúscula: son la parte `?p=id` de la URL y también el nombre de los archivos.
 
 ## Re-encode
 
+Las fuentes actuales son `.MOV` de cámara: 1920x1080, 29,97 fps, audio PCM. El audio PCM es lo que hace que pesen 100-550 MB.
+
 ```powershell
-ffmpeg -i videos/original.mp4 -map 0:v:0 -an -vf "scale='min(1080,iw)':-2" -r 30 `
-  -c:v libx264 -profile:v main -pix_fmt yuv420p -crf 27 -preset slow `
+ffmpeg -i videos/original.MOV -map 0:v:0 -an -vf "scale='min(1080,iw)':-2" -r 30 `
+  -c:v libx264 -profile:v main -pix_fmt yuv420p -crf 28 -preset slow `
   -g 5 -keyint_min 5 -sc_threshold 0 -movflags +faststart videos/original-web.mp4
 ```
 
 ```powershell
-ffmpeg -i videos/original.mp4 -map 0:a:0 -vn -c:a aac -b:a 128k -movflags +faststart videos/original-audio.m4a
+ffmpeg -i videos/original.MOV -map 0:a:0 -vn -c:a aac -b:a 128k -movflags +faststart videos/original-audio.m4a
 ```
 
 Valores que no se negocian:
@@ -76,7 +87,17 @@ Valores que no se negocian:
 - **yuv420p, perfil main**: compatibilidad con iOS y Android.
 - **Sin audio en el MP4**: el audio va aparte, en `.m4a`.
 
-El CRF se ajusta por pieza según peso y calidad. Referencia: `prueba` quedó en CRF 32 (3,8 MB) y `miau` en CRF 27 (5,47 MB).
+El CRF y la resolución se ajustan por pieza según peso y duración. Criterio: que ninguna pieza pase de ~12 MB. Referencia de la tanda actual:
+
+| Pieza | Duración | Resolución | CRF | Peso |
+|---|---|---|---|---|
+| avion | 19,9 s | 1080 | 28 | 1,7 MB |
+| ateneo | 29,5 s | 1080 | 28 | 5,1 MB |
+| plazafrancia | 28,9 s | 1080 | 28 | 11,6 MB |
+| cementerio | 79,4 s | 720 | 29 | 11,8 MB |
+| aeroparque | 96,7 s | 720 | 29 | 12,6 MB |
+
+Las dos piezas largas van a 720 px: a 1080 pesaban 24 MB cada una.
 
 Verificar:
 
