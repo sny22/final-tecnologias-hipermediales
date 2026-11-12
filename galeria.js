@@ -7,7 +7,7 @@ if (galeria) {
 
   PIEZAS.forEach(function (pieza) {
     const enlace = document.createElement("a");
-    enlace.className = "pieza";
+    enlace.className = pieza.destacada ? "pieza pieza--destacada" : "pieza";
     enlace.href = "mostrarVideo.html?p=" + encodeURIComponent(pieza.id);
     enlace.setAttribute("aria-label", t("verPieza"));
 

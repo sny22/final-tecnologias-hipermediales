@@ -65,6 +65,13 @@ ffmpeg -i original.JPG -vf "scale='min(1600,iw)':-2" -q:v 3 imagenes/nueva.jpg
 
 Los `id` van en minúscula: son la parte `?p=id` de la URL y también el nombre de los archivos.
 
+### Layout de la galería
+
+- Todas las piezas son cuadros iguales de 4:5 con `object-fit: cover`: la imagen se recorta, nunca se deforma.
+- La primera pieza del array, si lleva `destacada: true`, ocupa todo el ancho arriba de la grilla (16:9 en celular, 21:9 desde 700 px).
+- Las columnas son 2, 3 y 4 según el ancho de la ventana.
+- Si se cambia el orden de `PIEZAS` cambia el orden de la galería y cuál queda destacada.
+
 ## Re-encode
 
 Las fuentes actuales son `.MOV` de cámara: 1920x1080, 29,97 fps, audio PCM. El audio PCM es lo que hace que pesen 100-550 MB.

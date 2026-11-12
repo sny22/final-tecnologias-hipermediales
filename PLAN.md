@@ -14,7 +14,7 @@ Carpeta: final
 - En desktop, la rueda hacia abajo avanza y hacia arriba retrocede. Un notch equivale a un frame.
 - Al llegar al final, el recorrido vuelve al inicio en loop.
 - Audio ambiente en loop, separado del video. El video va muteado.
-- Fondo blanco y video con `object-fit: contain`.
+- Fondo blanco y video a pantalla completa con `object-fit: cover`.
 - Sin hover decorativo; solo cursor y foco de teclado.
 - Sin texto visible en las páginas: ni títulos, ni descripciones, ni mensajes de carga o error. El título del proyecto vive solo en el `<title>` del documento.
 - `textos.js` guarda los textos español/inglés y el idioma, pero solo alimenta etiquetas ARIA. No hay toggle visible por ahora.
@@ -216,7 +216,7 @@ CSS principal:
 - Fondo blanco.
 - `html.escena, html.escena body { height: 100%; overflow: hidden; overscroll-behavior: none; }`.
 - `.stage { position: fixed; inset: 0; height: 100dvh; display: grid; place-items: center; }`.
-- El video ocupa todo y usa `object-fit: contain`, `background: transparent`.
+- El video ocupa todo y usa `object-fit: cover`, `background: transparent`.
 - El `scroll-track` también es `position: fixed; inset: 0; overflow-y: auto;` y queda por encima del video, pero es transparente.
 - El `scroll-track` solo se muestra en dispositivos táctiles: `(hover: none)` o `(pointer: coarse)`.
 - En desktop se oculta; la rueda y el teclado manejan los frames.
@@ -227,7 +227,7 @@ CSS principal:
 - El video va con `pointer-events: none`; el `scroll-track` recibe el gesto; el botón de sonido va por encima con `z-index` superior, 44x44 px y safe areas.
 - El botón de sonido es un SVG de 24 px: parlante con ondas cuando hay sonido, parlante tachado cuando está muteado.
 - Sin flechas.
-- Sin barras negras: el fondo blanco se ve detrás del video.
+- Sin barras negras: el video cubre la pantalla completa y recorta lo que sobra.
 - Safe areas con `env(safe-area-inset-*)`.
 
 Criterio de aceptación: el video se ve completo, fijo y sin deformación; el gesto de scroll del celular recorre frames; no hay flechas; no hay fondo negro; no hay rebote de página; no aparece texto.
@@ -524,7 +524,7 @@ Verificado en Chromium con el video forzado a `readyState 0`: el empujón descar
 - No hay flechas visibles.
 - El loop funciona en ambos extremos sin saltos visuales.
 - El video queda fijo y no se deforma.
-- El fondo es blanco y no hay barras negras.
+- El fondo es blanco y el video cubre la pantalla sin barras.
 - El audio ambiente se activa y se silencia; no está sincronizado con los frames.
 - No hay hover decorativo.
 - No aparece ningún texto visible en ninguna página.

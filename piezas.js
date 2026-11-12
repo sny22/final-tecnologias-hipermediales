@@ -2,8 +2,19 @@
 // El orden de este array es el orden en que aparecen en la galería.
 // Para agregar una pieza: sumar un objeto y subir la imagen, el video y el audio.
 // Los id van en minúscula: son la parte ?p=id de la URL.
+// `destacada: true` hace que la pieza ocupe todo el ancho arriba de la grilla.
 
 const PIEZAS = [
+  {
+    id: "avion",
+    imagen: "imagenes/avion.jpg",
+    ancho: 1600,
+    alto: 2134,
+    video: "videos/avion-web.mp4",
+    audio: "videos/avion-audio.m4a",
+    fps: 30,
+    destacada: true
+  },
   {
     id: "aeroparque",
     imagen: "imagenes/aeroparque.jpg",
@@ -20,15 +31,6 @@ const PIEZAS = [
     alto: 1200,
     video: "videos/ateneo-web.mp4",
     audio: "videos/ateneo-audio.m4a",
-    fps: 30
-  },
-  {
-    id: "avion",
-    imagen: "imagenes/avion.jpg",
-    ancho: 1600,
-    alto: 2134,
-    video: "videos/avion-web.mp4",
-    audio: "videos/avion-audio.m4a",
     fps: 30
   },
   {
