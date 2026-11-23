@@ -17,8 +17,8 @@ Carpeta: final
 - Fondo blanco y video a pantalla completa con `object-fit: cover`.
 - Sin hover decorativo; solo cursor y foco de teclado.
 - Sin texto visible en las páginas: ni títulos, ni descripciones, ni mensajes de carga o error. El título del proyecto vive solo en el `<title>` del documento.
-- `textos.js` guarda los textos español/inglés y el idioma, pero solo alimenta etiquetas ARIA. No hay toggle visible por ahora.
-- Sin `alt` en las imágenes; el `aria-label` del enlace sale de `textos.js`.
+- `textos.js` guardaba los textos español/inglés y el idioma para alimentar etiquetas ARIA. Se eliminó: las etiquetas quedaron escritas a mano. No hay toggle visible.
+- Sin `alt` en las imágenes; el `aria-label` del enlace está escrito en `galeria.js`.
 - Sin botón volver ni siguiente/anterior por ahora.
 - Re-encode de los videos con FFmpeg.
 - Mapping confirmado: `imgPrueba.jpg → prueba.mp4`, `calavera.jpg → miau.mp4`.
@@ -95,7 +95,6 @@ Criterio de aceptación: ambos videos están a 30 fps constantes, `miau` se ve v
 index.html
 mostrarVideo.html
 justPlaces.css
-textos.js
 piezas.js
 galeria.js
 moverVideo.js
@@ -111,7 +110,7 @@ videos/
 AGENTS.md            (opcional)
 ```
 
-`textos.js` concentra el idioma y los textos para que la galería y la página de video no tengan lógica duplicada. No agrega texto visible: solo alimenta etiquetas ARIA y, si se agrega, el toggle de idioma.
+Sin duplicar texto entre páginas: cada etiqueta accesible vive en el archivo que la usa (`galeria.js`, `mostrarVideo.html`, `moverVideo.js`). No hay archivo de textos.
 
 Sin `node_modules`, sin bundler, sin dependencias de runtime. FFmpeg es solo una herramienta de preparación.
 
@@ -148,7 +147,7 @@ Reglas:
 - El `id` debe ser único y seguro para URL.
 - `fps` queda en 30 porque ambos videos se re-encodean a 30 fps constantes.
 - `ancho` y `alto` son las dimensiones reales de la imagen. Se aplican como atributos `width` y `height` para que el navegador reserve el espacio y no haya saltos de layout con `loading="lazy"`.
-- La imagen no lleva `alt`; el enlace toma su `aria-label` de `t("verPieza")` en `textos.js`, así que no hay texto visible pero el enlace tiene nombre accesible.
+- La imagen no lleva `alt`; el enlace lleva `aria-label="View piece"` puesto a mano en `galeria.js`, así que no hay texto visible pero el enlace tiene nombre accesible.
 - Agregar una pieza nueva requiere solo sumar un objeto y los archivos.
 
 Criterio de aceptación: el agente puede agregar una pieza sin tocar el HTML de la galería ni duplicar la página de video.
@@ -165,7 +164,7 @@ Criterio de aceptación: el agente puede agregar una pieza sin tocar el HTML de 
    - Recorrer `PIEZAS`.
    - Crear un `<a>` por pieza con `href="mostrarVideo.html?p=" + encodeURIComponent(id)`.
    - Crear un `<img>` con `src`, `alt=""`, `loading="lazy"` y `decoding="async"`.
-   - Agregar `aria-label` con `t("verPieza")`. Es lo único textual y no se ve.
+   - Agregar `aria-label="View piece"` al enlace. Es lo único textual y no se ve.
 
 3. CSS:
    - Grid de 2 columnas en móvil, 3 desde 700 px y 4 desde 1100 px.
@@ -195,7 +194,7 @@ HTML base:
     <div class="scroll-space" id="scrollSpace"></div>
   </div>
 
-  <button class="sound" id="sound" type="button" aria-pressed="false" data-etiqueta="activarSonido">
+  <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Play sound">
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path class="parlante" d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"></path>
       <path class="ondas" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12"></path>
@@ -357,7 +356,7 @@ Implementado en `justPlaces.css`, dentro del bloque `escena`:
 - `user-select: none`, `-webkit-touch-callout: none` y `-webkit-tap-highlight-color: transparent`.
 - No se bloquea el zoom del navegador desde el viewport; no hay `maximum-scale=1`.
 - Botón de sonido arriba a la derecha, 44x44 px, con `touch-action: manipulation` y safe areas.
-- Sin texto en el botón: solo el icono, con `aria-label` desde `textos.js`.
+- Sin texto en el botón: solo el icono, con `aria-label="Play sound"` / `"Mute sound"`.
 
 Criterio de aceptación: se puede recorrer con el pulgar usando el scroll normal; no hay flechas; no hay scroll de página visible; no hay rebote, doble toque accidental ni selección; el botón de sonido sigue siendo tocable.
 
@@ -372,23 +371,24 @@ Implementado en `moverVideo.js`:
 - El audio arranca con el primer `pointerdown` o `keydown` en la página. Si el gesto es sobre el botón de sonido, no se dispara: decide el botón.
 - Si el navegador bloquea el `play()`, la promesa se ignora y queda el botón para activarlo. Los listeners de gesto no se quitan hasta que el audio arranca de verdad.
 - El botón alterna entre `pause()` y `play()`. No usa `muted`: pausar libera el decodificador y al reactivar retoma donde estaba.
-- `aria-pressed` refleja el estado y el `aria-label` sale de `t("activarSonido")` / `t("silenciar")`; se actualiza con `data-etiqueta` + `aplicarTextos()`, así también cambia si cambia el idioma.
+- `aria-pressed` refleja el estado y el `aria-label` alterna entre `"Play sound"` y `"Mute sound"` en `actualizarBotonSonido()`.
 - Si el loop tiene una micro pausa audible, se puede evaluar Web Audio para un loop seamless; no entra en la primera versión.
 
 Criterio de aceptación: el audio se puede activar y silenciar; no se reproduce sin gesto del usuario; el video sigue muteado; el loop funciona en iOS y Android.
 
-## FASE 9 — TEXTOS E IDIOMA
+## FASE 9 — TEXTOS ACCESIBLES (REVISADA)
 
-- `textos.js` concentra el diccionario español/inglés (`verPieza`, `cargando`, `noDisponible`, `activarSonido`, `silenciar`, `recorrer`, `idioma`) y la detección de idioma. Lo cargan la galería y la página de video.
-- Idioma inicial según `navigator.language`, con la elección guardada en `localStorage` (clave `idioma`).
-- `textos.js` actualiza `document.documentElement.lang`.
-- La galería usa `t("verPieza")` para el `aria-label` del enlace, pero **no muestra texto visible**.
-- La página de video usa `t()` para el `aria-label` del botón de sonido.
-- No hay toggle `EN / ES` por ahora: la interfaz visible sigue sin palabras. `fijarIdioma()` ya está listo si se agrega.
+> Originalmente esta fase era un diccionario ES/EN en `textos.js` con detección de idioma. Ese archivo se eliminó: el sitio no muestra texto y solo necesita tres nombres accesibles, así que quedaron escritos a mano en el lugar donde se usan.
+
+- `galeria.js`: `aria-label="View piece"` en cada enlace de la grilla.
+- `mostrarVideo.html`: `aria-label="Play sound"` fijo en el `<button class="sound">`.
+- `moverVideo.js`: `actualizarBotonSonido()` cambia el `aria-label` a `"Mute sound"` / `"Play sound"` y `aria-pressed` según el estado.
+- Las dos páginas declaran `<html lang="en">` de forma estática; no hay detección de idioma ni `localStorage`.
+- No hay toggle `EN / ES`: la interfaz visible sigue sin palabras.
 - Ninguna página muestra texto: no hay "Cargando" ni "Video no disponible". Si el video no carga, la página queda en blanco y el problema se ve en la consola.
 - El único texto del proyecto es el `<title>` del documento, que no aparece en la página.
 
-Criterio de aceptación: ninguna de las dos páginas muestra texto visible; los `aria-label` responden al idioma guardado o al del navegador; el idioma se respeta al recargar; el único texto del documento es el `<title>`.
+Criterio de aceptación: ninguna de las dos páginas muestra texto visible; los enlaces de la galería y el botón de sonido tienen nombre accesible y el botón refleja su estado; el único texto del documento es el `<title>`.
 
 ## FASE 10 — RENDIMIENTO
 
@@ -536,7 +536,7 @@ Verificado en Chromium con el video forzado a `readyState 0`: el empujón descar
 - El loop móvil usa tres copias del recorrido. El salto de `scrollTop` es invisible porque el mapeo es por módulo, pero hay que probarlo en iOS con momentum.
 - El scroll nativo puede tener inercia y saltear frames; el motor aplica el último frame objetivo y no encola seeks.
 - Sin canvas, el `<video>` nativo puede mostrar algún overlay de reproducción en iOS. Si ocurre, se evalúa un fallback con canvas solo para ese caso.
-- Al no haber texto, el nombre accesible de los enlaces y del botón de sonido depende solo del `aria-label` de `textos.js`. No hay aviso visible si JavaScript está desactivado: la galería queda vacía. Es una decisión explícita del proyecto.
+- Al no haber texto, el nombre accesible de los enlaces y del botón de sonido depende solo del `aria-label` escrito en `galeria.js`, `mostrarVideo.html` y `moverVideo.js`. No hay aviso visible si JavaScript está desactivado: la galería queda vacía. Es una decisión explícita del proyecto.
 - El audio ambiente en `<audio loop>` puede tener una micro pausa en el loop. Si se nota, se puede pasar a Web Audio.
 - FFmpeg es una herramienta de preparación, no una dependencia del sitio.
 - Abrir el proyecto con `file://` no es confiable; usar servidor local.

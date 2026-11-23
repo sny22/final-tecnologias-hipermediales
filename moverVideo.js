@@ -25,7 +25,6 @@ let sonidoActivo = false;
 let empujes = 0;
 
 video.muted = true;
-aplicarTextos();
 actualizarBotonSonido();
 
 const parametro = new URLSearchParams(location.search).get("p");
@@ -179,8 +178,7 @@ window.addEventListener("keydown", function (event) {
 // Audio ambiente: capa continua, independiente de los frames.
 function actualizarBotonSonido() {
   botonSonido.setAttribute("aria-pressed", sonidoActivo ? "true" : "false");
-  botonSonido.dataset.etiqueta = sonidoActivo ? "silenciar" : "activarSonido";
-  aplicarTextos();
+  botonSonido.setAttribute("aria-label", sonidoActivo ? "Mute sound" : "Play sound");
 }
 
 function quitarGestos() {

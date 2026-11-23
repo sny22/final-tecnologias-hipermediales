@@ -9,7 +9,7 @@ if (galeria) {
     const enlace = document.createElement("a");
     enlace.className = pieza.destacada ? "pieza pieza--destacada" : "pieza";
     enlace.href = "mostrarVideo.html?p=" + encodeURIComponent(pieza.id);
-    enlace.setAttribute("aria-label", t("verPieza"));
+    enlace.setAttribute("aria-label", "View piece");
 
     const imagen = document.createElement("img");
     imagen.src = pieza.imagen;

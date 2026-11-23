@@ -24,7 +24,6 @@ Para probar en el celular:
 index.html           galería
 mostrarVideo.html    página de video (?p=id)
 justPlaces.css       estilos de las dos páginas
-textos.js            textos ES/EN y detección de idioma
 piezas.js            configuración de las piezas
 galeria.js           genera la galería desde PIEZAS
 moverVideo.js        carga la pieza y mueve los frames
@@ -130,13 +129,13 @@ Para que el recorrido sea más o menos sensible, cambiar `PX_PER_FRAME`: más ch
 
 ## Límites conocidos
 
-- No hay texto visible en ninguna página. Los enlaces llevan `aria-label` desde `textos.js`, pero no hay títulos ni mensajes.
+- No hay texto visible en ninguna página. Los nombres accesibles están escritos a mano en cada archivo (`aria-label` de los enlaces en `galeria.js`, del botón en `mostrarVideo.html` y `moverVideo.js`), en inglés, igual que `<html lang="en">`. No hay títulos ni mensajes.
 - Sin JavaScript la galería queda vacía.
 - El video va muteado; el audio arranca con el primer gesto. Si iOS lo bloquea, se activa con el botón de sonido.
 - El loop del audio puede tener una micro pausa. Si molesta, habría que pasar a Web Audio.
 - Sin canvas, iOS podría mostrar algún overlay nativo sobre el video.
 - Algunos navegadores móviles (Chrome en Android con ahorro de datos, Safari en iOS) ignoran `preload="auto"`. Por eso `moverVideo.js` fuerza la descarga con un `play()` muteado y pausa al recibir la metadata. Si aun así no carga, queda un aviso en la consola.
-- Los originales `videos/prueba.mp4` y `videos/miau.mp4` no se usan en la web. No hace falta subirlos.
+- Los `videos/*.MOV` originales (1,4 GB) no los usa la web y quedan fuera del repo por `.gitignore`.
 
 ## Publicar
 
@@ -147,9 +146,9 @@ Opciones:
 - **GitHub Pages** si el repo es público. Apuntar Pages a la rama `main`, carpeta raíz.
 - **Netlify Drop** si se prefiere no tocar el repo: arrastrar la carpeta.
 
-Qué subir: `index.html`, `mostrarVideo.html`, `justPlaces.css`, `textos.js`, `piezas.js`, `galeria.js`, `moverVideo.js`, `imagenes/` y los cuatro archivos `videos/*-web.mp4` / `videos/*-audio.m4a`.
+Qué subir: `index.html`, `mostrarVideo.html`, `justPlaces.css`, `piezas.js`, `galeria.js`, `moverVideo.js`, `imagenes/` y los diez archivos `videos/*-web.mp4` / `videos/*-audio.m4a`.
 
-Qué no hace falta subir: `videos/prueba.mp4`, `videos/miau.mp4` (originales, 18,4 MB), `package.json`, `PLAN.md` y `AGENTS.md`.
+Qué no hace falta subir: los `videos/*.MOV` originales (1,4 GB), `package.json`, `PLAN.md` y `AGENTS.md`.
 
 Ambos hosts sirven `Range`, así que el scrub funciona igual que en local.
 
