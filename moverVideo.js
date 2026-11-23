@@ -1,224 +1,140 @@
-// Carga la pieza indicada en la URL (?p=id) y mueve el video fotograma a fotograma.
-// En móvil manda el scroll nativo; en desktop, la rueda y las flechas del teclado.
+// Recorre la pieza de la URL (?p=id) frame a frame: scroll en móvil, rueda y flechas en desktop.
 
-const PX_PER_FRAME = 10;
-const PASO_RUEDA = 100;
-const MAX_PASOS_RUEDA = 3;
-const ESPERA_CARGA = 900;
-const MAX_EMPUJES = 4;
+const PX_PER_FRAME = 10; // px de scroll por frame
+const PASO_RUEDA = 100;  // px de rueda por frame
 
 const video = document.getElementById("video");
 const audio = document.getElementById("audio");
-const scrollTrack = document.getElementById("scrollTrack");
-const scrollSpace = document.getElementById("scrollSpace");
-const botonSonido = document.getElementById("sound");
+const track = document.getElementById("scrollTrack");
+const space = document.getElementById("scrollSpace");
+const boton = document.getElementById("sound");
 
-let fps = 30;
-let totalFrames = 0;
-let cycleHeight = 0;
-let frame = 0;
-let objetivo = 0;
-let buscando = false;
-let listo = false;
-let acumuladoRueda = 0;
-let sonidoActivo = false;
-let empujes = 0;
+const pieza = PIEZAS.find(p => p.id === new URLSearchParams(location.search).get("p"));
+
+let fps = 30, totalFrames = 0, ciclo = 0, frame = 0, objetivo = 0;
+let buscando = false, listo = false, acumulado = 0, sonando = false;
 
 video.muted = true;
-actualizarBotonSonido();
 
-const parametro = new URLSearchParams(location.search).get("p");
-const pieza = PIEZAS.find(function (item) {
-  return item.id === parametro;
-});
-
-if (!pieza) {
-  console.warn("Pieza no encontrada:", parametro);
-} else {
+if (pieza) {
   fps = pieza.fps || 30;
   video.src = pieza.video;
   audio.src = pieza.audio;
-  video.addEventListener("loadedmetadata", alCargarMetadata);
-  video.load();
-  audio.load();
-  setTimeout(vigilarCarga, ESPERA_CARGA);
+  video.addEventListener("loadedmetadata", alCargar);
+  setTimeout(destrabar, 900); // algunos móviles ignoran preload="auto"
 }
 
-// Chrome en Android con ahorro de datos, y Safari en iOS, ignoran preload="auto":
-// no bajan ni un byte del video hasta que se reproduce, así que la página queda blanca.
-// Un play() muteado sí está permitido por las políticas de autoplay y fuerza la descarga;
-// en cuanto llega la metadata lo pausamos y seguimos en modo fotograma a fotograma.
-function empujarCarga() {
-  if (!pieza || totalFrames || empujes >= MAX_EMPUJES) return;
-
-  empujes++;
-
-  video.play().then(function () {
-    if (totalFrames) video.pause();
-  }).catch(function () {
-    // El navegador lo bloquea: el primer gesto del usuario vuelve a intentarlo.
-  });
+// Forzar la descarga: un play() muteado está permitido y arranca la carga.
+function destrabar() {
+  if (!totalFrames) video.play().then(() => video.pause()).catch(() => {});
 }
 
-function vigilarCarga() {
-  if (!pieza || totalFrames) return;
-
-  empujarCarga();
-
-  if (empujes < MAX_EMPUJES) {
-    setTimeout(vigilarCarga, ESPERA_CARGA * 2);
-  } else {
-    console.warn("El video no cargó", {
-      readyState: video.readyState,
-      networkState: video.networkState,
-      error: video.error && video.error.code,
-      src: video.currentSrc
-    });
-  }
-}
-
-function alCargarMetadata() {
+function alCargar() {
   totalFrames = Math.round(video.duration * fps);
   if (!totalFrames) return;
 
-  // Si el video venía reproduciéndose por el empujón de carga, se frena acá.
-  if (!video.paused) video.pause();
-
-  // El recorrido de un ciclo nunca es más corto que la pantalla,
-  // para que siempre haya margen de scroll.
-  cycleHeight = Math.max(totalFrames * PX_PER_FRAME, window.innerHeight);
-  scrollSpace.style.height = cycleHeight * 3 + "px";
-  scrollTrack.scrollTop = cycleHeight;
+  video.pause();
+  ciclo = Math.max(totalFrames * PX_PER_FRAME, innerHeight); // nunca menos que la pantalla
+  space.style.height = ciclo * 3 + "px";
+  track.scrollTop = ciclo; // arranca en el ciclo del medio
 
   listo = true;
   irAFrame(0);
 }
 
-// Un solo seek a la vez. Si llega otro objetivo mientras busca,
-// se aplica al recibir "seeked".
-function irAFrame(nuevo) {
+// Un seek a la vez: si llegan más pedidos mientras busca, gana el último.
+function irAFrame(n) {
   if (!totalFrames) return;
-  frame = ((nuevo % totalFrames) + totalFrames) % totalFrames;
-  objetivo = (frame + 0.5) / fps;
-  aplicar();
-}
 
-function aplicar() {
-  if (buscando || !totalFrames) return;
-  if (Math.abs(video.currentTime - objetivo) < 0.001) return;
+  frame = ((n % totalFrames) + totalFrames) % totalFrames; // loop en los dos sentidos
+  objetivo = (frame + 0.5) / fps;                          // centro del frame
+
+  if (buscando || Math.abs(video.currentTime - objetivo) < 0.001) return;
+
   buscando = true;
   video.currentTime = objetivo;
 }
 
-video.addEventListener("seeked", function () {
+video.addEventListener("seeked", () => {
   buscando = false;
-  if (Math.abs(video.currentTime - objetivo) > 0.001) aplicar();
+  irAFrame(frame);
 });
 
-// Scroll nativo del celular: tres ciclos del recorrido.
-// El salto de posición ocurre lejos de los bordes y no cambia el frame visible.
+// Scroll del celular: tres ciclos; el salto se hace lejos de los bordes.
 function alScrollear() {
   if (!listo) return;
 
-  const y = scrollTrack.scrollTop;
+  const y = track.scrollTop;
 
-  if (y < cycleHeight / 2) {
-    scrollTrack.scrollTop = y + cycleHeight;
+  if (y < ciclo / 2 || y > ciclo * 1.5) {
+    track.scrollTop = y < ciclo / 2 ? y + ciclo : y - ciclo; // mismo frame, otro ciclo
     return;
   }
 
-  if (y > cycleHeight * 1.5) {
-    scrollTrack.scrollTop = y - cycleHeight;
-    return;
-  }
-
-  const local = ((y % cycleHeight) + cycleHeight) % cycleHeight;
-  irAFrame(Math.min(totalFrames - 1, Math.floor((local / cycleHeight) * totalFrames)));
+  const local = ((y % ciclo) + ciclo) % ciclo;
+  irAFrame(Math.min(totalFrames - 1, Math.floor((local / ciclo) * totalFrames)));
 }
 
-scrollTrack.addEventListener("scroll", alScrollear, { passive: true });
+track.addEventListener("scroll", alScrollear, { passive: true });
 
-function trackVisible() {
-  return getComputedStyle(scrollTrack).display !== "none";
-}
-
-// Rueda en desktop: un notch equivale a un frame.
-window.addEventListener("wheel", function (event) {
-  if (!listo || trackVisible()) return;
+// Rueda: un notch = un frame. La capa de scroll solo se muestra en pantallas táctiles.
+window.addEventListener("wheel", event => {
+  if (!listo || getComputedStyle(track).display !== "none") return;
 
   event.preventDefault();
 
-  let delta = event.deltaY;
-  if (event.deltaMode === 1) delta *= 16;
-  else if (event.deltaMode === 2) delta *= window.innerHeight;
+  acumulado += event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1);
 
-  acumuladoRueda += delta;
-
-  const pasos = Math.trunc(acumuladoRueda / PASO_RUEDA);
+  const pasos = Math.trunc(acumulado / PASO_RUEDA);
   if (!pasos) return;
 
-  acumuladoRueda -= pasos * PASO_RUEDA;
-  const limite = Math.max(-MAX_PASOS_RUEDA, Math.min(MAX_PASOS_RUEDA, pasos));
-  irAFrame(frame + limite);
+  acumulado -= pasos * PASO_RUEDA;
+  irAFrame(frame + Math.max(-3, Math.min(3, pasos))); // tope de 3 frames por gesto
 }, { passive: false });
 
-// Teclado: una pulsación, un frame.
-window.addEventListener("keydown", function (event) {
+// Una flecha = un frame.
+window.addEventListener("keydown", event => {
   if (!listo || event.repeat) return;
 
-  if (event.key === "ArrowDown" || event.key === "ArrowRight") {
-    event.preventDefault();
-    irAFrame(frame + 1);
-  } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
-    event.preventDefault();
-    irAFrame(frame - 1);
-  }
+  const paso = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+  if (!paso) return;
+
+  event.preventDefault();
+  irAFrame(frame + paso);
 });
 
-// Audio ambiente: capa continua, independiente de los frames.
-function actualizarBotonSonido() {
-  botonSonido.setAttribute("aria-pressed", sonidoActivo ? "true" : "false");
-  botonSonido.setAttribute("aria-label", sonidoActivo ? "Mute sound" : "Play sound");
+// Audio ambiente en loop, independiente de los frames.
+function pintarBoton() {
+  boton.setAttribute("aria-pressed", sonando ? "true" : "false");
+  boton.setAttribute("aria-label", sonando ? "Mute sound" : "Play sound");
 }
 
-function quitarGestos() {
-  window.removeEventListener("pointerdown", alPrimerGesto);
-  window.removeEventListener("keydown", alPrimerGesto);
+function encender() {
+  if (sonando || !audio.src) return;
+  audio.play().then(() => {
+    sonando = true;
+    pintarBoton();
+  }).catch(() => {});
 }
 
-function intentarSonido() {
-  if (sonidoActivo || !audio.src) return;
-
-  audio.play().then(function () {
-    sonidoActivo = true;
-    actualizarBotonSonido();
-    quitarGestos();
-  }).catch(function () {
-    // El navegador todavía no lo permite: queda el botón para activarlo.
-  });
-}
-
-function alPrimerGesto(event) {
+// Un gesto fuera del botón habilita el audio y, si hacía falta, la descarga.
+function primerGesto(event) {
   if (event.target.closest && event.target.closest(".sound")) return;
-
-  // Un gesto siempre desbloquea la descarga, aunque los empujes automáticos hayan fallado.
-  empujes = 0;
-  empujarCarga();
-  intentarSonido();
+  destrabar();
+  encender();
 }
 
-window.addEventListener("pointerdown", alPrimerGesto);
-window.addEventListener("keydown", alPrimerGesto);
+window.addEventListener("pointerdown", primerGesto);
+window.addEventListener("keydown", primerGesto);
 
-botonSonido.addEventListener("click", function () {
-  empujes = 0;
-  empujarCarga();
+boton.addEventListener("click", () => {
+  destrabar();
 
-  if (sonidoActivo) {
+  if (sonando) {
     audio.pause();
-    sonidoActivo = false;
-    actualizarBotonSonido();
+    sonando = false;
+    pintarBoton();
   } else {
-    intentarSonido();
+    encender();
   }
 });

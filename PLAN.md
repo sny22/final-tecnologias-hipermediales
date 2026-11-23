@@ -508,9 +508,8 @@ Causa: Chrome en Android (y Safari en iOS) puede ignorar `preload="auto"` por ah
 
 Arreglo en `moverVideo.js`:
 
-- `empujarCarga()`: si a los 900 ms no hay metadata, llama `video.play()` (muteado, permitido por las políticas de autoplay) para forzar la descarga y, en cuanto llega `loadedmetadata`, pausa y busca el frame 0.
-- `vigilarCarga()`: reintenta hasta 4 veces cada 1,8 s y, si no carga, deja un `console.warn` con `readyState`, `networkState`, `error` y `src`.
-- El primer `pointerdown`/`keydown` reinicia los intentos: un gesto del usuario desbloquea la descarga incluso donde el autoplay muteado está bloqueado.
+- `destrabar()`: si no hay frames, llama `video.play()` (muteado, permitido por las políticas de autoplay) para forzar la descarga y lo pausa en cuanto arranca. Se llama a los 900 ms y en cada gesto del usuario, así que no necesita reintentos propios.
+- El primer `pointerdown`/`keydown` fuera del botón también enciende el audio.
 - El botón de sonido también empuja la carga.
 
 Verificado en Chromium con el video forzado a `readyState 0`: el empujón descarga, pausa en el frame 0 y deja `readyState 4`. En carga normal `empujes` queda en 0, o sea que no hay reproducción innecesaria.

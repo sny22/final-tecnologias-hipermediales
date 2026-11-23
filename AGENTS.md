@@ -134,7 +134,7 @@ Para que el recorrido sea más o menos sensible, cambiar `PX_PER_FRAME`: más ch
 - El video va muteado; el audio arranca con el primer gesto. Si iOS lo bloquea, se activa con el botón de sonido.
 - El loop del audio puede tener una micro pausa. Si molesta, habría que pasar a Web Audio.
 - Sin canvas, iOS podría mostrar algún overlay nativo sobre el video.
-- Algunos navegadores móviles (Chrome en Android con ahorro de datos, Safari en iOS) ignoran `preload="auto"`. Por eso `moverVideo.js` fuerza la descarga con un `play()` muteado y pausa al recibir la metadata. Si aun así no carga, queda un aviso en la consola.
+- Algunos navegadores móviles (Chrome en Android con ahorro de datos, Safari en iOS) ignoran `preload="auto"`. Por eso `moverVideo.js` fuerza la descarga con un `play()` muteado a los 900 ms y lo repite en el primer gesto del usuario; en cuanto hay frames, pausa y sigue en modo fotograma a fotograma.
 - Los `videos/*.MOV` originales (1,4 GB) no los usa la web y quedan fuera del repo por `.gitignore`.
 
 ## Publicar
